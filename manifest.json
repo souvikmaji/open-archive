@@ -15,8 +15,7 @@
     "version": "0.1",
     "description": "Access any webpages from archive.today",
     "permissions": [
-        "activeTab",
-        "scripting"
+        "activeTab"
     ],
     "background": {
         "service_worker": "service-worker.js"
