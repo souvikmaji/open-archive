@@ -3,16 +3,13 @@
 [![Available on Chrome Web Store](https://img.shields.io/chrome-web-store/v/kgbhhpbffpfihonajnpmoalggjcnidkg.svg)](https://chromewebstore.google.com/detail/open-archive/kgbhhpbffpfihonajnpmoalggjcnidkg?hl=en)
 
 
-
-![Demo](https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExdXdvd3FxMG5wMHFwODhsZzlmam5wN3h6MGc3djg4eWYyNXdxYmsyeSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/DGroli7C2q4lwmfSME/giphy-downsized-large.gif "Open Archive")
-
-
-
-
-
 Ever wondered what a webpage looked like before it changed? Open Archive is your personal time machine for the internet, providing quick and easy access to the most recent archived version of any website. Whether you're a researcher, journalist, or just curious about the evolution of content, this extension is designed to help you explore the web's history with a single click.
 
 ## Key Features:
+
+<img src="icons/open-archive.gif" width="700" height="500" />
+
+
 - Instant Access: Automatically opens the latest archived version of the current page in a new tab.
 - Explore Historical Snapshots: Navigate through different versions of the page to see how content has evolved over time.
 - Simple & Fast: No need for complex tools or searches—get the archived version instantly.
@@ -21,7 +18,7 @@ Ever wondered what a webpage looked like before it changed? Open Archive is your
 - Content Preservation: Perfect for users who want to see how web pages looked at different times, preserving content that might otherwise be lost or changed.
 - Research & Reference: Ideal for academic research, content creators, and anyone needing to reference past versions of web pages.
 - User-Friendly: With its clean interface and straightforward functionality, accessing the web's history has never been easier.
-- Take control of your browsing experience and uncover the hidden stories behind your favourite websites. 
+- Take control of your browsing experience and uncover the hidden stories behind your favorite websites. 
 
 
 **Install Open Archive today and start exploring the web’s rich history!**
