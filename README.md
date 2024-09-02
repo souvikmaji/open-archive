@@ -7,7 +7,7 @@ Ever wondered what a webpage looked like before it changed? Open Archive is your
 
 ## Key Features:
 
-<img src="icons/open-archive.gif" width="700" height="500" />
+<img src="https://github.com/souvikmaji/open-archive/blob/main/icons/open-archive.gif" width="700" height="500" />
 
 
 - Instant Access: Automatically opens the latest archived version of the current page in a new tab.
