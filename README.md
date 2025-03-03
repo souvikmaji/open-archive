@@ -1,7 +1,7 @@
 # Open Archive
 
 [![Available on Chrome Web Store](https://img.shields.io/chrome-web-store/v/kgbhhpbffpfihonajnpmoalggjcnidkg.svg)](https://chromewebstore.google.com/detail/open-archive/kgbhhpbffpfihonajnpmoalggjcnidkg?hl=en)
-
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/souvikmaji)
 
 Ever wondered what a webpage looked like before it changed? Open Archive is your personal time machine for the internet, providing quick and easy access to the most recent archived version of any website. Whether you're a researcher, journalist, or just curious about the evolution of content, this extension is designed to help you explore the web's history with a single click.
 
