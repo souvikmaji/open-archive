@@ -8,8 +8,9 @@ async function launchChromium(t, live = false) {
   const onLinuxRunner = process.env.GITHUB_ACTIONS === 'true' && process.platform === 'linux';
   const browser = await puppeteer.launch({
     executablePath: process.env.CHROMIUM_BIN || 'chromium',
-    headless: !live && !onLinuxRunner,
+    headless: !onLinuxRunner,
     pipe: true,
+    protocolTimeout: 15_000,
     enableExtensions: true,
     dumpio: onLinuxRunner,
     args: [
