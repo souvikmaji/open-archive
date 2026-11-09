@@ -35,7 +35,12 @@ jobs:
         id: firefox
         with:
           firefox-version: latest
-      - run: npm run "test:$BROWSER"
+      - run: |
+          if [ "$BROWSER" = chromium ]; then
+            xvfb-run -a npm run test:chromium
+          else
+            npm run test:firefox
+          fi
         env:
           BROWSER: ${{ matrix.browser }}
           CHROMIUM_BIN: ${{ steps.chrome.outputs.chrome-path }}
