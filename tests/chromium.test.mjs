@@ -2,21 +2,20 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import puppeteer from 'puppeteer-core';
 import { extensionPath, testPage, waitFor } from './fixture.mjs';
+import { articleUrl, assertPublisherPreview, isArchiveUrl, liveArchiveOptions, waitForArchivedArticle } from './live-archive.mjs';
 
-test('Chromium opens archive tabs and restores the toolbar action after the rating prompt', { timeout: 45_000 }, async (t) => {
-  const { pageUrl, archiveUrl } = await testPage(t);
-  const onGitHubRunner = process.env.GITHUB_ACTIONS === 'true';
+async function launchChromium(t, live = false) {
+  const onLinuxRunner = process.env.GITHUB_ACTIONS === 'true' && process.platform === 'linux';
   const browser = await puppeteer.launch({
     executablePath: process.env.CHROMIUM_BIN || 'chromium',
-    headless: !onGitHubRunner,
+    headless: !live && !onLinuxRunner,
     pipe: true,
     enableExtensions: true,
-    dumpio: onGitHubRunner,
+    dumpio: onLinuxRunner,
     args: [
       // The Ubuntu runner restricts user namespaces for Chrome for Testing.
-      ...(onGitHubRunner ? ['--no-sandbox'] : []),
-      '--no-proxy-server',
-      '--host-resolver-rules=MAP archive.is 127.0.0.1',
+      ...(!live && onLinuxRunner ? ['--no-sandbox'] : []),
+      ...(!live ? ['--no-proxy-server', '--host-resolver-rules=MAP archive.is 127.0.0.1'] : []),
     ],
   });
   t.after(() => browser.close());
@@ -24,7 +23,16 @@ test('Chromium opens archive tabs and restores the toolbar action after the rati
   const id = await browser.installExtension(extensionPath);
   const extension = (await browser.extensions()).get(id);
   assert.ok(extension?.enabled);
+  await waitFor(async () => {
+    const [worker] = await extension.workers();
+    return worker && await worker.evaluate(() => chrome.action.onClicked.hasListeners());
+  }, 'the extension to register its toolbar action');
+  return { browser, extension, id };
+}
 
+test('Chromium opens archive tabs and restores the toolbar action after the rating prompt', { timeout: 45_000 }, async (t) => {
+  const { pageUrl, archiveUrl } = await testPage(t);
+  const { browser, extension, id } = await launchChromium(t);
   const page = await browser.newPage();
   await page.goto(pageUrl);
   await page.bringToFront();
@@ -57,4 +65,25 @@ test('Chromium opens archive tabs and restores the toolbar action after the rati
   await waitFor(() => !browser.targets().includes(popupTarget), 'rating popup to close');
 
   await openArchive('archive tab after dismissing the popup');
+});
+
+test('Chromium live archive opens the full WSJ article', liveArchiveOptions, async (t) => {
+  const { browser, extension } = await launchChromium(t, true);
+  const page = await browser.newPage();
+  await page.goto(articleUrl, { waitUntil: 'domcontentloaded', timeout: 25_000 });
+  assertPublisherPreview(page.url(), await page.$eval('body', (body) => body.innerText));
+  await page.bringToFront();
+
+  const existingTargets = new Set(browser.targets());
+  await extension.triggerAction(page);
+  await waitForArchivedArticle(async () => {
+    const target = browser.targets().find((tab) => !existingTargets.has(tab) && isArchiveUrl(tab.url()));
+    const archive = await target?.page();
+    if (!archive) return undefined;
+    const text = await archive.evaluate(() => document.body?.innerText ?? '').catch((error) => {
+      if (/Execution context was destroyed|Cannot find context/.test(error.message)) return '';
+      throw error;
+    });
+    return { url: archive.url(), text };
+  });
 });

@@ -39,4 +39,10 @@ Run `npm ci` with Node.js 22.12 or later. Set `CHROMIUM_BIN` and `FIREFOX_BIN` t
 
 GitHub Actions runs both tests on pull requests into the default branch and on pushes to it. After both pass, the workflow validates the Firefox package and attaches the unsigned ZIP as the `firefox-amo` artifact. Run `npm run package:firefox` to produce the same package locally.
 
+### Live archive check
+
+Run `LIVE_ARCHIVE=1 npm run test:chromium` and `LIVE_ARCHIVE=1 npm run test:firefox`, or manually run the **Browser compatibility** workflow with **Check the real WSJ article and its Archive.today snapshot** enabled. Each browser uses a fresh profile, opens the [WSJ article about Cape Coral](https://www.wsj.com/real-estate/florida-cape-coal-home-prices-3f64a0df), and clicks the extension. The test checks that a passage absent from the publisher page renders in the new Archive.today tab.
+
+The live check depends on both sites being reachable. A rate limit, challenge page, or unavailable snapshot can fail this check. Push and pull request runs use the local fixture.
+
 See the [Firefox submission notes](FIREFOX_RELEASE.md) for the store listing and reviewer steps.

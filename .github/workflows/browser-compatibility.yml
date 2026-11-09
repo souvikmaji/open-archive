@@ -5,6 +5,12 @@ on:
     branches: [main, master]
   push:
     branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      live_archive:
+        description: Check the real WSJ article and its Archive.today snapshot
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -12,7 +18,7 @@ permissions:
 jobs:
   browsers:
     name: ${{ matrix.browser }}
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.live_archive && 'macos-15' || 'ubuntu-24.04' }}
     timeout-minutes: 8
     strategy:
       fail-fast: false
@@ -36,18 +42,20 @@ jobs:
         with:
           firefox-version: latest
       - run: |
-          if [ "$BROWSER" = chromium ]; then
+          if [ "$BROWSER" = chromium ] && [ "$RUNNER_OS" = Linux ]; then
             xvfb-run -a npm run test:chromium
           else
-            npm run test:firefox
+            npm run "test:$BROWSER"
           fi
         env:
           BROWSER: ${{ matrix.browser }}
+          LIVE_ARCHIVE: ${{ inputs.live_archive && '1' || '0' }}
           CHROMIUM_BIN: ${{ steps.chrome.outputs.chrome-path }}
           FIREFOX_BIN: ${{ steps.firefox.outputs.firefox-path }}
 
   firefox-package:
     name: Firefox package
+    if: ${{ !inputs.live_archive }}
     needs: browsers
     runs-on: ubuntu-24.04
     timeout-minutes: 5
