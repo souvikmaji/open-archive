@@ -10,7 +10,8 @@ async function launchChromium(t, live = false) {
     executablePath: process.env.CHROMIUM_BIN || 'chromium',
     headless: !onLinuxRunner,
     pipe: true,
-    protocolTimeout: 15_000,
+    protocolTimeout: live ? 15_000 : undefined,
+    networkEnabled: !live,
     enableExtensions: true,
     dumpio: onLinuxRunner,
     args: [
@@ -24,6 +25,12 @@ async function launchChromium(t, live = false) {
   const id = await browser.installExtension(extensionPath);
   const extension = (await browser.extensions()).get(id);
   assert.ok(extension?.enabled);
+  if (!live) {
+    await waitFor(async () => {
+      const [worker] = await extension.workers();
+      return worker && await worker.evaluate(() => chrome.action.onClicked.hasListeners());
+    }, 'the extension to register its toolbar action');
+  }
   return { browser, extension, id };
 }
 
