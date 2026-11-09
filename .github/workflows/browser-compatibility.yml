@@ -5,6 +5,12 @@ on:
     branches: [main, master]
   push:
     branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      live_archive:
+        description: Check the real WSJ article and its Archive.today snapshot
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -17,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox]
+        browser: ${{ fromJSON(inputs.live_archive && '["firefox"]' || '["chromium", "firefox"]') }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -36,18 +42,22 @@ jobs:
         with:
           firefox-version: latest
       - run: |
-          if [ "$BROWSER" = chromium ]; then
+          if [ "$LIVE_ARCHIVE" = 1 ]; then
+            node --test --test-name-pattern='live archive' "tests/$BROWSER.test.mjs"
+          elif [ "$BROWSER" = chromium ]; then
             xvfb-run -a npm run test:chromium
           else
-            npm run test:firefox
+            npm run "test:$BROWSER"
           fi
         env:
           BROWSER: ${{ matrix.browser }}
+          LIVE_ARCHIVE: ${{ inputs.live_archive && '1' || '0' }}
           CHROMIUM_BIN: ${{ steps.chrome.outputs.chrome-path }}
           FIREFOX_BIN: ${{ steps.firefox.outputs.firefox-path }}
 
   firefox-package:
     name: Firefox package
+    if: ${{ !inputs.live_archive }}
     needs: browsers
     runs-on: ubuntu-24.04
     timeout-minutes: 5

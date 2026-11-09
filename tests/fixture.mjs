@@ -22,8 +22,8 @@ export async function testPage(t) {
   return { pageUrl, archiveUrl: `https://archive.is/newest/${pageUrl}` };
 }
 
-export async function waitFor(check, description) {
-  const deadline = Date.now() + 10_000;
+export async function waitFor(check, description, timeout = 10_000) {
+  const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     const result = await check();
     if (result) return result;

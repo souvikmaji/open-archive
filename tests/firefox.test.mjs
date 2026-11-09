@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { extensionPath, testPage, waitFor } from './fixture.mjs';
+import { articleUrl, assertPublisherPreview, isArchiveUrl, liveArchiveOptions, waitForArchivedArticle } from './live-archive.mjs';
 
 function connectBiDi(socket) {
   const pending = new Map();
@@ -35,15 +36,16 @@ function connectBiDi(socket) {
   });
 }
 
-test('Firefox opens archive tabs through its toolbar action', { timeout: 45_000 }, async (t) => {
-  const { pageUrl, archiveUrl } = await testPage(t);
+async function launchFirefox(t, live = false) {
   const profile = await mkdtemp(join(tmpdir(), 'open-archive-firefox-'));
   await writeFile(join(profile, 'user.js'), `
     user_pref("browser.aboutwelcome.enabled", false);
     user_pref("browser.shell.checkDefaultBrowser", false);
+    ${live ? '' : `
     user_pref("network.dns.localDomains", "archive.is");
     user_pref("network.trr.mode", 5);
     user_pref("network.proxy.type", 0);
+    `}
   `);
 
   const portProbe = createServer();
@@ -73,7 +75,7 @@ test('Firefox opens archive tabs through its toolbar action', { timeout: 45_000 
   });
   await Promise.race([
     stopped.then(() => { throw new Error(`Firefox exited during startup:\n${startupOutput}`); }),
-    waitFor(() => startupOutput.includes('WebDriver BiDi listening'), 'Firefox WebDriver'),
+    waitFor(() => startupOutput.includes('WebDriver BiDi listening'), 'Firefox WebDriver', 20_000),
   ]).catch((error) => {
     throw new Error(`${error.message}\n${startupOutput}`, { cause: error });
   });
@@ -108,6 +110,12 @@ test('Firefox opens archive tabs through its toolbar action', { timeout: 45_000 
   }
 
   const tabs = async () => (await send('browsingContext.getTree')).contexts;
+  return { send, page, tabs, clickToolbar };
+}
+
+test('Firefox opens archive tabs through its toolbar action', { timeout: 45_000 }, async (t) => {
+  const { pageUrl, archiveUrl } = await testPage(t);
+  const { send, page, tabs, clickToolbar } = await launchFirefox(t);
   await send('browsingContext.navigate', { context: page.context, url: pageUrl, wait: 'complete' });
   for (let attempt = 0; attempt < 2; attempt++) {
     await send('browsingContext.activate', { context: page.context });
@@ -116,4 +124,29 @@ test('Firefox opens archive tabs through its toolbar action', { timeout: 45_000 
     assert.notEqual(archiveTab.context, page.context);
     await send('browsingContext.close', { context: archiveTab.context });
   }
+});
+
+test('Firefox live archive opens the full WSJ article', liveArchiveOptions, async (t) => {
+  const { send, page, tabs, clickToolbar } = await launchFirefox(t, true);
+
+  async function readText(context) {
+    const result = await send('script.evaluate', {
+      target: { context },
+      expression: "document.body?.innerText ?? ''",
+      awaitPromise: false,
+    });
+    assert.equal(result.type, 'success', result.exceptionDetails?.text);
+    return result.result.value;
+  }
+
+  const { url } = await send('browsingContext.navigate', { context: page.context, url: articleUrl, wait: 'interactive' });
+  assertPublisherPreview(url, await readText(page.context));
+  await send('browsingContext.activate', { context: page.context });
+
+  const existingTabs = new Set((await tabs()).map((tab) => tab.context));
+  await clickToolbar();
+  await waitForArchivedArticle(async () => {
+    const tab = (await tabs()).find((tab) => !existingTabs.has(tab.context) && isArchiveUrl(tab.url));
+    return tab && { url: tab.url, text: await readText(tab.context) };
+  });
 });
