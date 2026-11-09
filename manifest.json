@@ -1,6 +1,8 @@
 {
     "name": "Open Archive",
-    "action": {},
+    "action": {
+        "default_title": "Open Archive"
+    },
     "icons": {
         "16": "icons/icon_16.png",
         "24": "icons/icon_24.png",
@@ -15,10 +17,21 @@
     "version": "0.1",
     "description": "Access any webpages from archive.today",
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "storage"
     ],
     "background": {
+        "scripts": ["service-worker.js"],
         "service_worker": "service-worker.js"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "@open-archive.souvikmaji",
+            "strict_min_version": "140.0",
+            "data_collection_permissions": {
+                "required": ["browsingActivity"]
+            }
+        }
     }
 }
 

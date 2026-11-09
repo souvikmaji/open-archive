@@ -35,3 +35,6 @@ Temporary Items
 *.icloud
 
 # End of https://www.toptal.com/developers/gitignore/api/macos
+# Development and release output
+/node_modules/
+/web-ext-artifacts/
