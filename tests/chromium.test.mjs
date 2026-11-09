@@ -5,11 +5,15 @@ import { extensionPath, testPage, waitFor } from './fixture.mjs';
 
 test('Chromium opens archive tabs and restores the toolbar action after the rating prompt', { timeout: 45_000 }, async (t) => {
   const { pageUrl, archiveUrl } = await testPage(t);
+  const onGitHubRunner = process.env.GITHUB_ACTIONS === 'true';
   const browser = await puppeteer.launch({
     executablePath: process.env.CHROMIUM_BIN || 'chromium',
     pipe: true,
     enableExtensions: true,
+    dumpio: onGitHubRunner,
     args: [
+      // The Ubuntu runner restricts user namespaces for Chrome for Testing.
+      ...(onGitHubRunner ? ['--no-sandbox'] : []),
       '--no-proxy-server',
       '--host-resolver-rules=MAP archive.is 127.0.0.1',
     ],
