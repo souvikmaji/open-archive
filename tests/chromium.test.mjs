@@ -11,7 +11,6 @@ async function launchChromium(t, live = false) {
     headless: !onLinuxRunner,
     pipe: true,
     protocolTimeout: live ? 15_000 : undefined,
-    networkEnabled: !live,
     enableExtensions: true,
     dumpio: onLinuxRunner,
     args: [
