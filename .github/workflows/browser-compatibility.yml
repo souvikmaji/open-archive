@@ -1,0 +1,66 @@
+name: Browser compatibility
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  browsers:
+    name: ${{ matrix.browser }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: browser-actions/setup-chrome@48ad923757ca74d66703209fe939badbdf80f2f4 # v2.2.0
+        if: matrix.browser == 'chromium'
+        id: chrome
+        with:
+          chrome-version: stable
+      - uses: browser-actions/setup-firefox@0bc507ddf224827e3b1af68e014d5e42ab93e795 # v1
+        if: matrix.browser == 'firefox'
+        id: firefox
+        with:
+          firefox-version: latest
+      - run: |
+          if [ "$BROWSER" = chromium ]; then
+            xvfb-run -a npm run test:chromium
+          else
+            npm run test:firefox
+          fi
+        env:
+          BROWSER: ${{ matrix.browser }}
+          CHROMIUM_BIN: ${{ steps.chrome.outputs.chrome-path }}
+          FIREFOX_BIN: ${{ steps.firefox.outputs.firefox-path }}
+
+  firefox-package:
+    name: Firefox package
+    needs: browsers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run package:firefox
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: firefox-amo
+          path: web-ext-artifacts/*.zip
+          if-no-files-found: error

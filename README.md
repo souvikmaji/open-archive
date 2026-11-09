@@ -5,6 +5,14 @@
 
 Ever wondered what a webpage looked like before it changed? Open Archive is your personal time machine for the internet, providing quick and easy access to the most recent archived version of any website. Whether you're a researcher, journalist, or just curious about the evolution of content, this extension is designed to help you explore the web's history with a single click.
 
+## Try it in Firefox
+
+1. In Firefox for desktop 140 or later, open `about:debugging#/runtime/this-firefox`.
+2. Click **Load Temporary Add-on** and select `manifest.json` from this repository.
+3. Open a web page and click **Open Archive** in the Extensions menu or toolbar. The latest archived version opens in a new tab.
+
+Firefox removes temporary add-ons when it restarts.
+
 ## Key Features:
 
 <img src="https://github.com/souvikmaji/open-archive/blob/main/icons/open-archive.gif" width="700" height="500" />
@@ -24,3 +32,11 @@ Ever wondered what a webpage looked like before it changed? Open Archive is your
 **Install Open Archive today and start exploring the web’s rich history!**
 
 > This is not an official extension from the Internet Archive. It uses the Wayback Machine API to access archived versions of web pages.
+
+## Browser tests and Firefox package
+
+Run `npm ci` with Node.js 22.12 or later. Set `CHROMIUM_BIN` and `FIREFOX_BIN` to your browser executable paths, then run `npm run test:chromium` and `npm run test:firefox`. Use a current Chromium-based browser with DevTools extension automation and current desktop Firefox. The tests load the unpacked extension and check the URL of the archive tab using a local test page.
+
+GitHub Actions runs both tests on pull requests into the default branch and on pushes to it. After both pass, the workflow validates the Firefox package and attaches the unsigned ZIP as the `firefox-amo` artifact. Run `npm run package:firefox` to produce the same package locally.
+
+See the [Firefox submission notes](FIREFOX_RELEASE.md) for the store listing and reviewer steps.
