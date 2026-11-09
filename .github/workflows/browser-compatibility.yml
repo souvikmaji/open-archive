@@ -42,7 +42,9 @@ jobs:
         with:
           firefox-version: latest
       - run: |
-          if [ "$BROWSER" = chromium ] && [ "$RUNNER_OS" = Linux ]; then
+          if [ "$LIVE_ARCHIVE" = 1 ]; then
+            node --test --test-name-pattern='live archive' "tests/$BROWSER.test.mjs"
+          elif [ "$BROWSER" = chromium ]; then
             xvfb-run -a npm run test:chromium
           else
             npm run "test:$BROWSER"
